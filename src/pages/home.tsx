@@ -1,12 +1,12 @@
-import { Button } from "@base-ui/react/button";
-import { Input } from "@base-ui/react/input";
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useLocalStorage } from "../hooks/useLocalStorage";
+import { Input, Button } from "@base-ui/react";
+import { Trash2, Plus } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
 
 
 export default function Home() {
-  const [players, setPlayers] = useState<string[]>(Array(10).fill(""));
+  const [players, setPlayers] = useLocalStorage<string[]>("pelada_names", Array(10).fill(""));
   const navigate = useNavigate();
 
   const handleNameChange = (index: number, value: string) => {
@@ -15,42 +15,62 @@ export default function Home() {
     setPlayers(newPlayers);
   };
 
+  const addPlayer = () => setPlayers([...players, ""]);
+  const removePlayer = (index: number) => setPlayers(players.filter((_, i) => i !== index));
+
   const sortTeams = () => {
-    // Verifica se todos os nomes foram preenchidos (opcional, mas recomendado)
-    if (players.some((p) => p.trim() === "")) {
-      alert("Preencha os 10 nomes!");
+    const validPlayers = players.filter(p => p.trim() !== "");
+
+    if (validPlayers.length < 10) {
+      alert("Preencha pelo menos 10 nomes para formar 2 times!");
       return;
     }
 
-    // Embaralha os jogadores
-    const shuffled = [...players].sort(() => 0.5 - Math.random());
+    // Embaralha
+    const shuffled = [...validPlayers].sort(() => 0.5 - Math.random());
 
-    // Divide em dois times de 5
-    const teamA = shuffled.slice(0, 5);
-    const teamB = shuffled.slice(5, 10);
+    // Divide em times de 5
+    const chunkedTeams: string[][] = [];
+    for (let i = 0; i < shuffled.length; i += 5) {
+      chunkedTeams.push(shuffled.slice(i, i + 5));
+    }
 
-    // Navega para a tela da partida passando os times no estado
-    navigate("/match", { state: { teamA, teamB } });
+    // Salva TODOS os times gerados
+    localStorage.setItem("pelada_allTeams", JSON.stringify(chunkedTeams));
+
+    navigate("/teams");
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6 flex justify-center items-center">
+    <div className="min-h-screen bg-slate-50 p-6 flex flex-col justify-center items-center">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">Sorteio da Pelada</CardTitle>
+          <CardTitle className="text-2xl text-center">Jogadores da Pelada</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+        <CardContent className="space-y-4 p-4">
+          <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2">
             {players.map((player, index) => (
-              <Input
-                key={index}
-                placeholder={`Jogador ${index + 1}`}
-                value={player}
-                onChange={(e) => handleNameChange(index, e.target.value)}
-              />
+              <div key={index} className="flex gap-2">
+                <Input
+                  className="border p-2 rounded w-full"
+                  placeholder={`Jogador ${index + 1}`}
+                  value={player}
+                  onChange={(e) => handleNameChange(index, e.target.value)}
+                />
+                {players.length > 10 && (
+                  <Button onClick={() => removePlayer(index)}>
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
             ))}
           </div>
-          <Button className="w-full mt-4" onClick={sortTeams}>
+
+          <Button className="w-full border rounded p-2 flex items-center justify-center cursor-pointer" onClick={addPlayer}>
+            <Plus className="w-4 h-4 mr-2" /> Adicionar Jogador
+          </Button>
+
+          <Button className="w-full mt-4 border p-2 rounded cursor-pointer" onClick={sortTeams}>
             Sortear Times
           </Button>
         </CardContent>
