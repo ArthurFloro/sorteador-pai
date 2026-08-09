@@ -52,7 +52,7 @@ export default function Home() {
             {players.map((player, index) => (
               <div key={index} className="flex gap-2">
                 <Input
-                  className="border p-2 rounded w-full"
+                  className="border p-2 border-black rounded w-full"
                   placeholder={`Jogador ${index + 1}`}
                   value={player}
                   onChange={(e) => handleNameChange(index, e.target.value)}
@@ -66,11 +66,11 @@ export default function Home() {
             ))}
           </div>
 
-          <Button className="w-full border rounded p-2 flex items-center justify-center cursor-pointer" onClick={addPlayer}>
+          <Button className="w-full border-black bg-amber-300 font-bold border rounded p-2 flex items-center justify-center cursor-pointer" onClick={addPlayer}>
             <Plus className="w-4 h-4 mr-2" /> Adicionar Jogador
           </Button>
 
-          <Button className="w-full mt-4 border p-2 rounded cursor-pointer" onClick={sortTeams}>
+          <Button className="w-full bg-amber-300 font-bold border-black mt-4 border p-2 rounded cursor-pointer" onClick={sortTeams}>
             Sortear Times
           </Button>
         </CardContent>
